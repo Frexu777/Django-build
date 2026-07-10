@@ -1,0 +1,35 @@
+name: Linting i Formatowanie
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Pobranie kodu repozytorium
+      uses: actions/checkout@v4
+
+    - name: Instalacja Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+
+    - name: Instalacja narzedzi do lintingu
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort
+
+    - name: Weryfikacja formatowania (Black)
+      run: black --check .
+
+    - name: Weryfikacja sortowania importow (isort)
+      run: isort --check .
+
+    - name: Analiza jakosci kodu (Flake8)
+      run: flake8 .
