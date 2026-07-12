@@ -1,10 +1,17 @@
-name: Skanowanie bezpieczenstwa
+name: Skanowanie bezpieczeństwa
 
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
   pull_request:
     branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   security:
