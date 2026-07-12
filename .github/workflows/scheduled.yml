@@ -1,0 +1,20 @@
+name: Zaplanowane zadania
+
+on:
+  schedule:
+    # Uruchamia workflow codziennie o 00:00 (UTC)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Pobranie kodu repozytorium
+        uses: actions/checkout@v4
+
+      - name: Uruchomienie skryptów konserwacyjnych
+        run: |
+          echo "To zadanie uruchamia się automatycznie według harmonogramu (Cron)."
+          echo "Tutaj można dodać np. skrypty czyszczące stare logi, generujące raporty itp."
