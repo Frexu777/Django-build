@@ -1,0 +1,71 @@
+name: Celery i Redis CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  celery-test:
+    runs-on: ubuntu-latest
+
+    services:
+      # Potrzebujemy bazy danych, zeby Django poprawnie dzialalo
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      # Dodajemy usluge Redis zgodnie z trescia zadania
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Pobranie kodu repozytorium
+      uses: actions/checkout@v4
+
+    - name: Instalacja Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+
+    - name: Instalacja zaleznosci z requirements.txt
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Wykonywanie migracji
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      run: python manage.py migrate
+
+    - name: Uruchomienie workera Celery w tle
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      run: |
+        # Uruchamiamy workera w tle (&) i dajemy mu 5 sekund na start
+        celery -A mysite worker -l info &
+        sleep 5
+
+    - name: Uruchamianie testow asynchronicznych
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      run: python manage.py test
