@@ -3,12 +3,19 @@ name: Automatyczny Deploy
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
   workflow_dispatch:
     inputs:
       rollback_commit:
         description: 'Podaj SHA commita do przywrócenia (Rollback)'
         required: false
         type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   REGISTRY: ghcr.io
