@@ -3,15 +3,20 @@ name: Celery i Redis CI
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
   pull_request:
     branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   celery-test:
     runs-on: ubuntu-latest
 
     services:
-      # Potrzebujemy bazy danych, zeby Django poprawnie dzialalo
       postgres:
         image: postgres:15
         env:
@@ -26,7 +31,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      # Dodajemy usluge Redis zgodnie z trescia zadania
       redis:
         image: redis:7
         ports:
