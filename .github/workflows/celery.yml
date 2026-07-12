@@ -62,12 +62,15 @@ jobs:
     - name: Wykonywanie migracji
       env:
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      run: python manage.py migrate
+      run: |
+        cd mysite
+        python manage.py migrate
 
     - name: Uruchomienie workera Celery w tle
       env:
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
       run: |
+        cd mysite
         # Uruchamiamy workera w tle (&) i dajemy mu 5 sekund na start
         celery -A mysite worker -l info &
         sleep 5
@@ -75,4 +78,6 @@ jobs:
     - name: Uruchamianie testow asynchronicznych
       env:
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      run: python manage.py test
+      run: |
+        cd mysite
+        python manage.py test
